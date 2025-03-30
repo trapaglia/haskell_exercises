@@ -52,7 +52,9 @@ zero, you can stop calculating product and return 0 immediately.
 84
 -}
 lazyProduct :: [Int] -> Int
-lazyProduct = error "TODO"
+lazyProduct [] = 1  
+lazyProduct (0 : _) = 0  
+lazyProduct arr = head arr * lazyProduct (drop 1 arr)
 
 {- | Implement a function that duplicates every element in the list.
 
@@ -62,7 +64,7 @@ lazyProduct = error "TODO"
 "ccaabb"
 -}
 duplicate :: [a] -> [a]
-duplicate = error "TODO"
+duplicate = concatMap (replicate 2)
 
 {- | Implement function that takes index and a list and removes the
 element at the given position. Additionally, this function should also
