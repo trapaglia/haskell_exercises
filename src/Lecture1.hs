@@ -70,7 +70,7 @@ sumOfSquares x y = (+) (x * x) (y*y)
 -}
 -- DON'T FORGET TO SPECIFY THE TYPE IN HERE
 lastDigit :: Int -> Int -- TODO hacerlo con strings
-lastDigit n = mod n 10
+lastDigit n = if n>=0 then mod n 10 else mod (-n) 10
 
 {- | Write a function that takes three numbers and returns the
 difference between the biggest number and the smallest one.
