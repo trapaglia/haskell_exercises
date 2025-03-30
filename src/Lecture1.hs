@@ -154,5 +154,3 @@ lowerAndGreater n list = let
                 l = if num < element then 1 else 0
                 h = if num > element then 1 else 0
                 in goRec (lower+l) (bigger+h) num (tail lista)
-
-
