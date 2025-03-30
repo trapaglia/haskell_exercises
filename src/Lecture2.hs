@@ -76,7 +76,12 @@ return the removed element.
 >>> removeAt 10 [1 .. 5]
 (Nothing,[1,2,3,4,5])
 -}
-removeAt = error "TODO"
+removeAt :: Int -> [Int] -> (Maybe Int , [Int])
+removeAt _ [] = (Nothing, [])
+removeAt indice arr 
+  | indice >= length arr = (Nothing, arr)
+  | otherwise = (Just (head (drop indice arr)), 
+             concat [take indice arr, drop (indice+1) arr])
 
 {- | Write a function that takes a list of lists and returns only
 lists of even lengths.
@@ -87,7 +92,8 @@ lists of even lengths.
 ♫ NOTE: Use eta-reduction and function composition (the dot (.) operator)
   in this function.
 -}
-evenLists = error "TODO"
+evenLists :: [[Int]] -> [[Int]]
+evenLists = filter (even . length) 
 
 {- | The @dropSpaces@ function takes a string containing a single word
 or number surrounded by spaces and removes all leading and trailing
@@ -103,7 +109,8 @@ spaces.
 
 🕯 HINT: look into Data.Char and Prelude modules for functions you may use.
 -}
-dropSpaces = error "TODO"
+dropSpaces :: String -> String
+dropSpaces = head . words
 
 {- |
 
