@@ -265,7 +265,7 @@ isIncreasing :: [Int] -> Bool
 isIncreasing []         = True
 isIncreasing [_]  = True
 isIncreasing (x:xs) | x > head xs = False
-isIncreasing (x:xs) | x <= head xs = isIncreasing (tail xs)
+isIncreasing (x:xs) = isIncreasing (tail xs)
 
 {- | Implement a function that takes two lists, sorted in the
 increasing order, and merges them into new list, also sorted in the
@@ -278,7 +278,11 @@ verify that.
 [1,2,3,4,7]
 -}
 merge :: [Int] -> [Int] -> [Int]
-merge = error "TODO"
+merge [] xs = xs
+merge xs [] = xs
+merge as bs 
+  | head as < head bs = head as : merge (tail as) bs
+  | otherwise = head bs : merge as (tail bs)
 
 {- | Implement the "Merge Sort" algorithm in Haskell. The @mergeSort@
 function takes a list of numbers and returns a new list containing the
