@@ -172,8 +172,76 @@ data Knight = Knight
     , knightAttack    :: Int
     , knightEndurance :: Int
     }
+  
+data Chest a = MkChest
+  { chestGold :: Int
+  , chestTreasure :: a}
 
-dragonFight = error "TODO"
+data DragonColor 
+  = Green
+  | Red 
+  | Black
+
+data Dragon = MkDragon
+  {color          :: DragonColor
+  , reward        :: Chest [String]
+  , dragonHealth  :: Int
+  , dragonAttack  :: Int
+  , dragonFirePower  :: Int}
+
+dragonMaker :: DragonColor -> Chest [String] -> Int -> Int -> Int -> Dragon
+dragonMaker Green tesoro salud ataque firePower = let
+  coinTreasure = MkChest {chestGold=chestGold tesoro, chestTreasure= []}
+  in MkDragon {color= Green, reward=coinTreasure , dragonHealth= salud, dragonAttack= ataque, dragonFirePower= firePower}
+dragonMaker color tesoro salud ataque firePower = MkDragon {color= color, reward= tesoro, dragonHealth= salud, 
+  dragonAttack= ataque, dragonFirePower= firePower}
+
+data FightResult 
+  = Victory (Chest [String])
+  | Defeat String
+  | Flee String
+
+showResult :: FightResult -> String
+showResult (Victory chest) = let 
+  goldString = show (chestGold chest)
+  armorString = concatMap (++ " ") (chestTreasure chest)
+  in "Felicidades ! Derrotaste al dragon... se le caen " ++ goldString ++ " monedas de oro, y un saco con " ++ armorString ++ "de equipamiento extra!"
+showResult (Defeat str) = "" -- ToDo
+showResult (Flee str) = "" -- ToDo
+
+getExp :: Dragon -> Int
+getExp dragon = case color dragon of
+  Green   ->   250
+  Black   ->   150
+  Red     ->   100
+
+tesoro :: Chest [String]
+tesoro = MkChest {chestGold = 980, chestTreasure = ["Espada sagrada", "Javalina dorada"]}
+cristobal::Knight
+cristobal = Knight {knightHealth = 100, knightAttack = 7, knightEndurance = 50}
+camilo :: Dragon
+camilo = dragonMaker Red tesoro 250 3 15
+
+dragonFight :: Knight -> Dragon -> FightResult
+dragonFight caballero dragon = let
+  turnosDragonVivo = div (dragonHealth dragon) (knightAttack caballero)
+  goCabTurnos :: Dragon -> Int -> Int -> Int
+  goCabTurnos drag salud turno 
+    | salud <= 0  = turno
+    | otherwise   = let 
+      newHealth = 
+        if mod turno 10 == 0 
+        then salud - dragonAttack drag - dragonFirePower dragon
+        else salud - dragonAttack drag
+      in goCabTurnos drag newHealth (turno+1)
+  turnosCaballeroVivo = goCabTurnos dragon (knightHealth caballero) 0
+  fightResult :: FightResult
+  fightResult 
+    | (turnosCaballeroVivo > knightEndurance caballero) && 
+      (turnosDragonVivo > knightEndurance caballero) = (Flee "Peleaste duro pero te cansaste.")
+    | (turnosCaballeroVivo > turnosDragonVivo) = (Victory (reward dragon))
+    | otherwise = (Defeat "Peleaste duro pero el dragon tiene milenios de peleas ...")
+  in fightResult
 
 ----------------------------------------------------------------------------
 -- Extra Challenges
