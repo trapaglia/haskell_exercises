@@ -206,8 +206,8 @@ showResult (Victory chest) = let
   goldString = show (chestGold chest)
   armorString = concatMap (++ " ") (chestTreasure chest)
   in "Felicidades ! Derrotaste al dragon... se le caen " ++ goldString ++ " monedas de oro, y un saco con " ++ armorString ++ "de equipamiento extra!"
-showResult (Defeat str) = "" -- ToDo
-showResult (Flee str) = "" -- ToDo
+showResult (Defeat str) = str
+showResult (Flee str) = str
 
 getExp :: Dragon -> Int
 getExp dragon = case color dragon of
@@ -238,9 +238,9 @@ dragonFight caballero dragon = let
   fightResult :: FightResult
   fightResult 
     | (turnosCaballeroVivo > knightEndurance caballero) && 
-      (turnosDragonVivo > knightEndurance caballero) = (Flee "Peleaste duro pero te cansaste.")
-    | (turnosCaballeroVivo > turnosDragonVivo) = (Victory (reward dragon))
-    | otherwise = (Defeat "Peleaste duro pero el dragon tiene milenios de peleas ...")
+      (turnosDragonVivo > knightEndurance caballero) = Flee "Peleaste duro pero te cansaste."
+    | (turnosCaballeroVivo > turnosDragonVivo) = Victory (reward dragon)
+    | otherwise = Defeat "Peleaste duro pero el dragon tiene milenios de peleas ..."
   in fightResult
 
 ----------------------------------------------------------------------------
