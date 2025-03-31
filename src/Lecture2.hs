@@ -262,7 +262,10 @@ False
 True
 -}
 isIncreasing :: [Int] -> Bool
-isIncreasing = error "TODO"
+isIncreasing []         = True
+isIncreasing [_]  = True
+isIncreasing (x:xs) | x > head xs = False
+isIncreasing (x:xs) | x <= head xs = isIncreasing (tail xs)
 
 {- | Implement a function that takes two lists, sorted in the
 increasing order, and merges them into new list, also sorted in the
