@@ -304,12 +304,13 @@ mergeSort [x] = [x]
 mergeSort xs = let
   first = mergeSort (take (div (length xs) 2) xs)
   second = mergeSort (drop (div (length xs) 2) xs)
+  -- in merge first second, pero lo repito porque es lindo
   go :: [Int] -> [Int] -> [Int]
   go [] bs = bs
   go as [] = as
   go as bs 
-    | head as <= head bs = (head as : go (tail as) bs)
-    | otherwise = (head bs : go as (tail bs))
+    | head as <= head bs = head as : go (tail as) bs
+    | otherwise = head bs : go as (tail bs)
   in go first second
 
 
@@ -362,8 +363,31 @@ data EvalError
 {- | Having all this set up, we can finally implement an evaluation function.
 It returns either a successful evaluation result or an error.
 -}
+
+isRight :: Either a b -> Bool
+isRight (Right _) = True
+isRight (Left _) = False
+
+extractRight :: Either a b -> b
+extractRight (Right a) = a
+extractRight (Left _) = error "Wrong value sent"
+
+extractLeft :: Either a b -> a
+extractLeft (Right _) = error "Unexpected success"
+extractLeft (Left a) = a
+
 eval :: Variables -> Expr -> Either EvalError Int
-eval = error "TODO"
+eval variables (Lit l) = Right l
+eval variables (Var s) = case lookup s variables of
+  Just v -> Right v
+  Nothing -> Left (VariableNotFound s)
+eval v (Add e1 e2) 
+  | isRight (eval v e1) && isRight (eval v e2) 
+    = Right (extractRight (eval v e1) + extractRight(eval v e2))
+  | not (isRight (eval v e1))
+    = eval v e1
+  | otherwise = eval v e2
+
 
 {- | Compilers also perform optimizations! One of the most common
 optimizations is "Constant Folding". It performs arithmetic operations
@@ -388,3 +412,15 @@ Folding" optimization on the given expression.
 -}
 constantFolding :: Expr -> Expr
 constantFolding = error "TODO"
+
+
+{-
+eval vars (Lit n) = Right n
+eval vars (Var name) = case lookup name vars of
+    Just value -> Right value
+    Nothing -> Left (VariableNotFound name)
+eval vars (Add e1 e2) = case (eval vars e1, eval vars e2) of
+    (Right v1, Right v2) -> Right (v1 + v2)
+    (Left err, _) -> Left err
+    (_, Left err) -> Left err
+-}
