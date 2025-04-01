@@ -52,7 +52,9 @@ zero, you can stop calculating product and return 0 immediately.
 84
 -}
 lazyProduct :: [Int] -> Int
-lazyProduct = error "TODO"
+lazyProduct [] = 1  
+lazyProduct (0 : _) = 0  
+lazyProduct arr = head arr * lazyProduct (drop 1 arr)
 
 {- | Implement a function that duplicates every element in the list.
 
@@ -62,7 +64,7 @@ lazyProduct = error "TODO"
 "ccaabb"
 -}
 duplicate :: [a] -> [a]
-duplicate = error "TODO"
+duplicate = concatMap (replicate 2)
 
 {- | Implement function that takes index and a list and removes the
 element at the given position. Additionally, this function should also
@@ -74,7 +76,12 @@ return the removed element.
 >>> removeAt 10 [1 .. 5]
 (Nothing,[1,2,3,4,5])
 -}
-removeAt = error "TODO"
+removeAt :: Int -> [Int] -> (Maybe Int , [Int])
+removeAt _ [] = (Nothing, [])
+removeAt indice arr 
+  | indice >= length arr = (Nothing, arr)
+  | otherwise = (Just (head (drop indice arr)), 
+             concat [take indice arr, drop (indice+1) arr])
 
 {- | Write a function that takes a list of lists and returns only
 lists of even lengths.
@@ -85,7 +92,8 @@ lists of even lengths.
 ♫ NOTE: Use eta-reduction and function composition (the dot (.) operator)
   in this function.
 -}
-evenLists = error "TODO"
+evenLists :: [[Int]] -> [[Int]]
+evenLists = filter (even . length) 
 
 {- | The @dropSpaces@ function takes a string containing a single word
 or number surrounded by spaces and removes all leading and trailing
@@ -101,7 +109,8 @@ spaces.
 
 🕯 HINT: look into Data.Char and Prelude modules for functions you may use.
 -}
-dropSpaces = error "TODO"
+dropSpaces :: String -> String
+dropSpaces = head . words
 
 {- |
 
@@ -163,8 +172,76 @@ data Knight = Knight
     , knightAttack    :: Int
     , knightEndurance :: Int
     }
+  
+data Chest a = MkChest
+  { chestGold :: Int
+  , chestTreasure :: a}
 
-dragonFight = error "TODO"
+data DragonColor 
+  = Green
+  | Red 
+  | Black
+
+data Dragon = MkDragon
+  {color          :: DragonColor
+  , reward        :: Chest [String]
+  , dragonHealth  :: Int
+  , dragonAttack  :: Int
+  , dragonFirePower  :: Int}
+
+dragonMaker :: DragonColor -> Chest [String] -> Int -> Int -> Int -> Dragon
+dragonMaker Green tesoro salud ataque firePower = let
+  coinTreasure = MkChest {chestGold=chestGold tesoro, chestTreasure= []}
+  in MkDragon {color= Green, reward=coinTreasure , dragonHealth= salud, dragonAttack= ataque, dragonFirePower= firePower}
+dragonMaker color tesoro salud ataque firePower = MkDragon {color= color, reward= tesoro, dragonHealth= salud, 
+  dragonAttack= ataque, dragonFirePower= firePower}
+
+data FightResult 
+  = Victory (Chest [String])
+  | Defeat String
+  | Flee String
+
+showResult :: FightResult -> String
+showResult (Victory chest) = let 
+  goldString = show (chestGold chest)
+  armorString = concatMap (++ " ") (chestTreasure chest)
+  in "Felicidades ! Derrotaste al dragon... se le caen " ++ goldString ++ " monedas de oro, y un saco con " ++ armorString ++ "de equipamiento extra!"
+showResult (Defeat str) = str
+showResult (Flee str) = str
+
+getExp :: Dragon -> Int
+getExp dragon = case color dragon of
+  Green   ->   250
+  Black   ->   150
+  Red     ->   100
+
+tesoro :: Chest [String]
+tesoro = MkChest {chestGold = 980, chestTreasure = ["Espada sagrada", "Javalina dorada"]}
+cristobal::Knight
+cristobal = Knight {knightHealth = 100, knightAttack = 7, knightEndurance = 50}
+camilo :: Dragon
+camilo = dragonMaker Red tesoro 250 3 15
+
+dragonFight :: Knight -> Dragon -> FightResult
+dragonFight caballero dragon = let
+  turnosDragonVivo = div (dragonHealth dragon) (knightAttack caballero)
+  goCabTurnos :: Dragon -> Int -> Int -> Int
+  goCabTurnos drag salud turno 
+    | salud <= 0  = turno
+    | otherwise   = let 
+      newHealth = 
+        if mod turno 10 == 0 
+        then salud - dragonAttack drag - dragonFirePower dragon
+        else salud - dragonAttack drag
+      in goCabTurnos drag newHealth (turno+1)
+  turnosCaballeroVivo = goCabTurnos dragon (knightHealth caballero) 0
+  fightResult :: FightResult
+  fightResult 
+    | (turnosCaballeroVivo > knightEndurance caballero) && 
+      (turnosDragonVivo > knightEndurance caballero) = Flee "Peleaste duro pero te cansaste."
+    | (turnosCaballeroVivo > turnosDragonVivo) = Victory (reward dragon)
+    | otherwise = Defeat "Peleaste duro pero el dragon tiene milenios de peleas ..."
+  in fightResult
 
 ----------------------------------------------------------------------------
 -- Extra Challenges
@@ -185,7 +262,10 @@ False
 True
 -}
 isIncreasing :: [Int] -> Bool
-isIncreasing = error "TODO"
+isIncreasing []         = True
+isIncreasing [_]  = True
+isIncreasing (x:xs) | x > head xs = False
+isIncreasing (x:xs) = isIncreasing (tail xs)
 
 {- | Implement a function that takes two lists, sorted in the
 increasing order, and merges them into new list, also sorted in the
@@ -198,7 +278,11 @@ verify that.
 [1,2,3,4,7]
 -}
 merge :: [Int] -> [Int] -> [Int]
-merge = error "TODO"
+merge [] xs = xs
+merge xs [] = xs
+merge as bs 
+  | head as < head bs = head as : merge (tail as) bs
+  | otherwise = head bs : merge as (tail bs)
 
 {- | Implement the "Merge Sort" algorithm in Haskell. The @mergeSort@
 function takes a list of numbers and returns a new list containing the
@@ -215,7 +299,19 @@ The algorithm of merge sort is the following:
 [1,2,3]
 -}
 mergeSort :: [Int] -> [Int]
-mergeSort = error "TODO"
+mergeSort [] = []
+mergeSort [x] = [x]
+mergeSort xs = let
+  first = mergeSort (take (div (length xs) 2) xs)
+  second = mergeSort (drop (div (length xs) 2) xs)
+  -- in merge first second, pero lo repito porque es lindo
+  go :: [Int] -> [Int] -> [Int]
+  go [] bs = bs
+  go as [] = as
+  go as bs 
+    | head as <= head bs = head as : go (tail as) bs
+    | otherwise = head bs : go as (tail bs)
+  in go first second
 
 
 {- | Haskell is famous for being a superb language for implementing
@@ -267,8 +363,31 @@ data EvalError
 {- | Having all this set up, we can finally implement an evaluation function.
 It returns either a successful evaluation result or an error.
 -}
+
+isRight :: Either a b -> Bool
+isRight (Right _) = True
+isRight (Left _) = False
+
+extractRight :: Either a b -> b
+extractRight (Right a) = a
+extractRight (Left _) = error "Wrong value sent"
+
+extractLeft :: Either a b -> a
+extractLeft (Right _) = error "Unexpected success"
+extractLeft (Left a) = a
+
 eval :: Variables -> Expr -> Either EvalError Int
-eval = error "TODO"
+eval variables (Lit l) = Right l
+eval variables (Var s) = case lookup s variables of
+  Just v -> Right v
+  Nothing -> Left (VariableNotFound s)
+eval v (Add e1 e2) 
+  | isRight (eval v e1) && isRight (eval v e2) 
+    = Right (extractRight (eval v e1) + extractRight(eval v e2))
+  | not (isRight (eval v e1))
+    = eval v e1
+  | otherwise = eval v e2
+
 
 {- | Compilers also perform optimizations! One of the most common
 optimizations is "Constant Folding". It performs arithmetic operations
@@ -293,3 +412,15 @@ Folding" optimization on the given expression.
 -}
 constantFolding :: Expr -> Expr
 constantFolding = error "TODO"
+
+
+{-
+eval vars (Lit n) = Right n
+eval vars (Var name) = case lookup name vars of
+    Just value -> Right value
+    Nothing -> Left (VariableNotFound name)
+eval vars (Add e1 e2) = case (eval vars e1, eval vars e2) of
+    (Right v1, Right v2) -> Right (v1 + v2)
+    (Left err, _) -> Left err
+    (_, Left err) -> Left err
+-}
